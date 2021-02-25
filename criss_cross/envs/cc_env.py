@@ -3,6 +3,7 @@ from gym import error, spaces, utils
 from gym.utils import seeding
 import numpy as np
 from io import StringIO
+import sys
 
 class CrissCross(gym.Env):
 
@@ -51,15 +52,16 @@ class CrissCross(gym.Env):
         done = False
         return self.state, reward, done, {}
 
-    def render(self, mode='ansi'):
+    def render(self, mode='human', close=False):
+        if close:
+            return
         outfile = StringIO() if mode == 'ansi' else sys.stdout
 
         outfile.write(np.array2string(self.state))
 
         # No need to return anything for human
         if mode != 'human':
-            with closing(outfile):
-                return outfile.getvalue()
+            return outfile
 
     def reset(self):
         self.state = np.array([0, 0, 0])
