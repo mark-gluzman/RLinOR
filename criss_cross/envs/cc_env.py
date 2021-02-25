@@ -50,7 +50,7 @@ class CrissCross(gym.Env):
             self.state = self.state + [0, 0, -1]
 
         done = False
-        return self.state, reward, done, {}
+        return tuple(self.state), reward, done, {}
 
     def render(self, mode='human', close=False):
         if close:
