@@ -8,6 +8,7 @@ import sys
 class CrissCross(gym.Env):
 
     def __init__(self, load=0.8):
+
         self.alpha = np.asarray([load, 0, load])  # arrival rate
         self.mu = np.asarray([2., 1., 2.])  # service rates
 
@@ -23,6 +24,7 @@ class CrissCross(gym.Env):
             spaces.Discrete(1000),
             spaces.Discrete(1000)))
         self._seed()
+        metadata = {'render.modes': ['ansi']}
 
     def _seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
@@ -49,20 +51,14 @@ class CrissCross(gym.Env):
         elif activity == 4 and action == 2 and self.state[2] > 0:
             self.state = self.state + [0, 0, -1]
 
-        done = False
+        done = (np.sum(self.state) == 0)
         return tuple(self.state), reward, done, {}
 
-    def render(self, mode='human', close=False):
-        if close:
-            return
-        outfile = StringIO() if mode == 'ansi' else sys.stdout
-
+    def render(self, mode='ansi', close=False):
+        outfile = StringIO() if mode == 'ansi' else super(CrissCross, self).render(mode=mode)
         outfile.write(np.array2string(self.state))
 
-        # No need to return anything for human
-        if mode != 'human':
-            return outfile
+
 
     def reset(self):
-        self.state = np.array([0, 0, 0])
-        return self.state
+        return tuple([0, 0, 0])
