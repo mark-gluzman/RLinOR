@@ -17,12 +17,13 @@ class CrissCross(gym.Env):
         self.p_compl = np.divide(self.mu, self.uniform_rate)  # service complition rates in the uniformized queueing network
         self.cumsum_rates = np.unique(np.cumsum(np.asarray([self.p_arriving, self.p_compl])))
 
-        self.state = np.array([0, 0, 0])  # Start at beginning of the chain
-        self.action_space = spaces.Discrete(3)
-        self.observation_space = spaces.Tuple((
-            spaces.Discrete(1000),
-            spaces.Discrete(1000),
-            spaces.Discrete(1000)))
+        self.state = np.array([2, 2, 2])  # Start at beginning of the chain
+        self.action_space = spaces.Discrete(2)
+        self.observation_space = spaces.MultiDiscrete([ 1000, 1000, 1000])
+        # spaces.Tuple((
+        #     spaces.Discrete(1000),
+        #     spaces.Discrete(1000),
+        #     spaces.Discrete(1000)))
         self._seed()
         metadata = {'render.modes': ['ansi']}
 
@@ -33,7 +34,7 @@ class CrissCross(gym.Env):
     def step(self, action):
         assert self.action_space.contains(action)
 
-        reward = - np.sum(self.state)
+        reward = - 1.
         xi = self.np_random.rand()
 
         activity = 0
@@ -44,15 +45,15 @@ class CrissCross(gym.Env):
             self.state = self.state + [1, 0, 0]
         elif activity == 1:
             self.state = self.state + [0, 0, 1]
-        elif activity == 2 and action == 1 and self.state[0] > 0:
-            self.state = self.state + [-1, 0, 0]
+        elif activity == 2 and (action == 0 or self.state[2]==0) and self.state[0] > 0:
+            self.state = self.state + [-1, 1, 0]
         elif activity == 3 and self.state[1] > 0:
             self.state = self.state + [0, -1, 0]
-        elif activity == 4 and action == 2 and self.state[2] > 0:
+        elif activity == 4 and (action == 1 or self.state[0]==0) and self.state[2] > 0:
             self.state = self.state + [0, 0, -1]
 
         done = (np.sum(self.state) == 0)
-        return tuple(self.state), reward, done, {}
+        return self.state, reward, done, {}
 
     def render(self, mode='ansi', close=False):
         outfile = StringIO() if mode == 'ansi' else super(CrissCross, self).render(mode=mode)
@@ -61,4 +62,5 @@ class CrissCross(gym.Env):
 
 
     def reset(self):
-        return tuple([0, 0, 0])
+        self.state = np.array([2, 2, 2])
+        return self.state
