@@ -1,13 +1,10 @@
 import gym
-from gym import error, spaces, utils
-from gym.utils import seeding
 import numpy as np
-from io import StringIO
 import sys
 
 class CrissCross(gym.Env):
 
-    def __init__(self, load=0.8):
+    def __init__(self, load=0.5):
 
         self.alpha = np.asarray([load, 0, load])  # arrival rate
         self.mu = np.asarray([2., 1., 2.])  # service rates
@@ -17,24 +14,20 @@ class CrissCross(gym.Env):
         self.p_compl = np.divide(self.mu, self.uniform_rate)  # service complition rates in the uniformized queueing network
         self.cumsum_rates = np.unique(np.cumsum(np.asarray([self.p_arriving, self.p_compl])))
 
-        self.state = np.array([2, 2, 2])  # Start at beginning of the chain
-        self.action_space = spaces.Discrete(2)
-        self.observation_space = spaces.MultiDiscrete([ 1000, 1000, 1000])
-        # spaces.Tuple((
-        #     spaces.Discrete(1000),
-        #     spaces.Discrete(1000),
-        #     spaces.Discrete(1000)))
-        self._seed()
+        self.state = np.array([1, 0, 0])  # Start at beginning of the chain
+        self.action_space = gym.spaces.Discrete(2)
+        self.observation_space = gym.spaces.MultiDiscrete([ 1000, 1000, 1000])
+        self.seed()
         metadata = {'render.modes': ['ansi']}
 
-    def _seed(self, seed=None):
-        self.np_random, seed = seeding.np_random(seed)
+    def seed(self, seed=None):
+        self.np_random, seed = gym.utils.seeding.np_random(seed)
         return [seed]
 
     def step(self, action):
         assert self.action_space.contains(action)
 
-        reward = - 1.
+        reward = - np.sum(self.state)
         xi = self.np_random.rand()
 
         activity = 0
@@ -55,12 +48,12 @@ class CrissCross(gym.Env):
         done = (np.sum(self.state) == 0)
         return self.state, reward, done, {}
 
-    def render(self, mode='ansi', close=False):
-        outfile = StringIO() if mode == 'ansi' else super(CrissCross, self).render(mode=mode)
+    def render(self, mode='ansi'):
+        outfile = sys.stdout if mode == 'ansi' else super(CrissCross, self).render(mode=mode)
         outfile.write(np.array2string(self.state))
 
 
 
     def reset(self):
-        self.state = np.array([2, 2, 2])
+        self.state = np.array([1, 0, 0])
         return self.state
